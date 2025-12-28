@@ -105,6 +105,8 @@ class JointTrajectoryExecutor(Node):
         self.status_interval = 1.0  # Log status every second
         self.current_step = 0
 
+        self.done = False   # 추가: 종료 플래그
+
         self.get_logger().info('Waiting for action server...')
         self.action_client.wait_for_server()
         self.get_logger().info('Action server available')
@@ -170,7 +172,8 @@ class JointTrajectoryExecutor(Node):
                     )
                 else:
                     self.get_logger().info('All steps completed!')
-                    self.shutdown_node()
+                    # self.shutdown_node()
+                    self.request_shutdown()
                     return
 
             # Check if current step has reached its target
@@ -181,6 +184,12 @@ class JointTrajectoryExecutor(Node):
                     self.goal_handle = None
                     self.current_step += 1
                     self.reached_target = False
+    # 추가 코드 (한번 실행 후 노드 종료)
+    def request_shutdown(self):
+        # 콜백 내부에서 종료 요청, 실제 종료는 main 루프가 처리
+        self.done = True
+        if self.goal_handle:
+            self.goal_handle.cancel_goal_async()
 
     def shutdown_node(self):
         if self.goal_handle:
@@ -244,12 +253,22 @@ class JointTrajectoryExecutor(Node):
         return traj
 
 
+# def main(args=None):
+#     rclpy.init(args=args)
+#     node = JointTrajectoryExecutor()
+#     rclpy.spin(node)
+#     node.destroy_node()
+#     rclpy.shutdown()
 def main(args=None):
     rclpy.init(args=args)
     node = JointTrajectoryExecutor()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+
+    try:
+        while rclpy.ok() and not node.done:
+            rclpy.spin_once(node, timeout_sec=0.1)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == '__main__':
