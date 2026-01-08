@@ -145,6 +145,7 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_description}, controller_manager_config],
         output='both',
         condition=UnlessCondition(use_sim),
+        # 추후 remapping 제거해야 함
         remappings=[('/arm_controller/joint_trajectory', '/leader/joint_trajectory')],
     )
 
