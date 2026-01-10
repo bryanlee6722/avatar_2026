@@ -7,6 +7,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
 from sensor_msgs.msg import JointState
+from avatar_control.plugins.filters import LowPassFilter
 
 # 받아올 데이터의 크기 관리
 ADDR_PRESENT_POSITION = 132
@@ -26,18 +27,21 @@ class BridgeNode(Node):
     def __init__(self):
         super().__init__('bridge_node')
         # 포트 정보
-        self.declare_parameter('serial_port', '/dev/ttyACM0')
+        self.declare_parameter('serial_port', '/dev/ttyUSB0')
         # 통신 속도
         self.declare_parameter('serial_baud', 1000000)
         # 다이나믹셀 id 설정
         self.declare_parameter('dxl_id', 2)
-        #         
+        # 받을 주파수 
         self.declare_parameter('hz', 50.0)
+        # LowPassFilter 주파수
+        self.declare_parameter('lpf_cutoff_hz', 5.0)
 
         port = self.get_parameter('serial_port').value
         baud = int(self.get_parameter('serial_baud').value)
         self.dxl_id = int(self.get_parameter('dxl_id').value)        
         hz = float(self.get_parameter('hz').value)
+        cutoff = float(self.get_parameter('lpf_cutoff_hz').value)
 
         self.pub = self.create_publisher(JointState, '/joint_states', 10)
 
@@ -60,10 +64,14 @@ class BridgeNode(Node):
         
         # 토크 꺼졌나 확인
         if not self.torque_off():
-            raise RuntimeError("Failed to turn torque off")
+           raise RuntimeError("Failed to turn torque off")
         
+        self.lpf = LowPassFilter(cutoff_hz=cutoff)
+
         self.dt = 1.0 / hz
         self.timer = self.create_timer(self.dt, self.tick)
+
+        self.get_logger().info(f"LPF cutoff_hz = {cutoff} Hz, dt = {self.dt:.6f}s")
 
     def tick(self):
         # https://emanual.robotis.com/docs/en/software/dynamixel/dynamixel_sdk/api_reference/python/python_packethandler/
@@ -76,15 +84,17 @@ class BridgeNode(Node):
          
         rad_angle = raw_angle_to_rad(int(raw_angle))
 
+        rad_angle_f = self.lpf.step(rad_angle, self.dt)
+
         # 잘 프린팅 되고 있나 확인용으로 추가
         self.get_logger().info(
-            f"[DXL] raw={raw_angle}, rad={rad_angle:.4f}",
+            f"[DXL] raw={raw_angle}, rad={rad_angle:.4f}, rad_f={rad_angle_f:.4f}",
             throttle_duration_sec=1.0
         )
         msg = JointState()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.name = ["joint1"]
-        msg.position = [float(rad_angle)]
+        msg.position = [float(rad_angle_f)]
         self.pub.publish(msg)
 
     # 토크 자동으로 꺼주는 함수 코드
