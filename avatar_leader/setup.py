@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'bridge_node = avatar_leader.src.bridge_node:main'
+            'bridge_node = avatar_leader.src.bridge_node:main',
+            'test_node = avatar_leader.src.test_node:main',
         ],
     },
 )
