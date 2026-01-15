@@ -12,6 +12,7 @@ class TestNode(Node):
         self.dxl_id = 2
 
         self.ADDR_PRESENT_POSITION = 132
+        self.LEN_PRESENT_POSITION = 4
 
         self.port_handler = PortHandler(self.serial_port)
         self.packet_handler = PacketHandler(2.0)
@@ -32,12 +33,12 @@ class TestNode(Node):
     def read_motor_angle(self):
         dxl_present_position, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, self.ADDR_PRESENT_POSITION)
 
-        if dxl_comm_result != COMM_SUCCESS:
+        if dxl_comm_result != 0:
             self.get_logger().error(f"Comm Failed: {self.packet_handler.getTxRxResult(dxl_comm_result)}")
         elif dxl_error != 0:
             self.get_logger().error(f"Dxl Error: {self.packet_handler.getTxRxResult(dxl_error)}")
         else:
-            rad_angle = dxl_present_position * (2.0 * math.pi / 4095.0)
+            rad_angle = dxl_present_position * (2.0 * math.pi / 4096.0)
             self.get_logger().info(f"Angle: {rad_angle:.4f} rad")
 
     def stop(self):
