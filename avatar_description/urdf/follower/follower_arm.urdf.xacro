@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
   <xacro:macro name="follower" params="prefix">
-
+    <!-- test -->
     <!-- <xacro:property name="meshes_file_direction" value="package://avatar_description/meshes/follower/" /> -->
 
     <!-- link0 -->
