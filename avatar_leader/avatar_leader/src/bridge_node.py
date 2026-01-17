@@ -1,3 +1,5 @@
+#manager노드
+
 import math
 import time
 
@@ -9,7 +11,7 @@ from std_msgs.msg import Float64
 from sensor_msgs.msg import JointState
 from avatar_leader.plugins.filters import LowPassFilter
 
-# 받아올 데이터의 크기 관리
+# 받아올 데이터의 크기 관리, address는 ADDR, LEN이 크기
 ADDR_PRESENT_POSITION = 132
 LEN_PRESENT_POSITION = 4
 ADDR_TORQUE_ENABLE = 64
@@ -28,7 +30,7 @@ class BridgeNode(Node):
         super().__init__('bridge_node')
         # 포트 정보
         self.declare_parameter('serial_port', '/dev/ttyUSB0')
-        # 통신 속도
+        # 통신 속도, 초당 몇 비트로 주고받는지 숫자 보드rate
         self.declare_parameter('serial_baud', 1000000)
         # 다이나믹셀 id 설정
         self.declare_parameter('dxl_id', 2)
@@ -97,7 +99,7 @@ class BridgeNode(Node):
         msg.position = [float(rad_angle_f)]
         self.pub.publish(msg)
 
-    # 토크 자동으로 꺼주는 함수 코드
+    # 토크 자동으로 꺼주는 함수 코드, 그래야 안다침!!! 토크꺼놔야함
     def torque_off(self):
         comm_result, error = self.packet_handler.write1ByteTxRx(
             self.port_handler, self.dxl_id, ADDR_TORQUE_ENABLE, 0
