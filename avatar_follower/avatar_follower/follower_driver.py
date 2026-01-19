@@ -16,7 +16,7 @@ class FollowerDriver(Node):
 
         # Subscriber for joint states
         self.leader_trajectory_sub = self.create_subscription(
-            JointTrajectory
+            JointTrajectory,
             '/leader/joint_trajectory',
             self.joint_state_callback,
             10
