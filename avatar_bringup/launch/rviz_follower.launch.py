@@ -23,6 +23,18 @@ def generate_launch_description():
             output='screen'
         ),
 
+        # Trajectory -> JointState bridge
+        Node(
+            package='avatar_bringup',
+            executable='traj_to_jointstate',
+            name='traj_to_jointstate',
+            output='screen',
+            parameters=[
+                {'traj_topic': '/arm_controller/joint_trajectory'},   # /leader/joint_trajectory로 변경
+                {'joint_states_topic': '/joint_states'}
+            ]
+        ),
+
         # robot_state_publisher
         Node(
             package='robot_state_publisher',
