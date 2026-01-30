@@ -49,10 +49,4 @@
     mock_sensor_commands="$(arg mock_sensor_commands)"
     port_name="$(arg port_name)"/>
 
-  <gazebo>
-    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-      <parameters>$(find avatar_bringup)/config/$(arg config_type)/hardware_controller_manager.yaml</parameters>
-    </plugin>
-  </gazebo>
-
 </robot>
