@@ -8,8 +8,8 @@ class MultiMotorNode(Node):
     def __init__(self):
         super().__init__('test_node')
 
-        self.declare_parameter('joint_names', ['joint1', 'joint2'])
-        self.declare_parameter('dxl_ids', [1, 2])
+        self.declare_parameter('joint_names', ['joint1'])
+        self.declare_parameter('dxl_ids', [13])
         self.declare_parameter('baudrate', 1000000)
         self.declare_parameter('port', '/dev/ttyUSB0')
 
