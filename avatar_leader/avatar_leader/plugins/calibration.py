@@ -72,3 +72,35 @@ class Calibration:
         return follower_pos
 
 # follower IK and get follower angle based on leader angle
+    def inverse_kinematics(self, target_pos, initial_angles):
+        curr_angles = np.array(initial_angles, dtype=float)
+        learning_rate = 0.05
+        iterations = 100
+        tolerance = 0.0001
+
+        for i in range(iterations):
+            curr_pos = self.forward_kinematics(curr_angles, self.follower_L1, self.follower_L2, self.follower_offset)
+            error = target_pos - curr_pos
+                
+            if np.linalg.norm(error) < tolerance:
+                break
+
+            # Numerical Jacobian
+            jacobian = np.zeros((3, 4))
+            eps = 1e-6
+            for j in range(4):
+                temp_angles = curr_angles.copy()
+                temp_angles[j] += eps
+                next_pos = self.forward_kinematics(temp_angles, self.follower_L1, self.follower_L2, self.follower_offset)
+                jacobian[:, j] = (next_pos - curr_pos) / eps
+
+            j_inv = np.linalg.pinv(jacobian)
+            curr_angles += learning_rate * np.dot(j_inv, error)
+
+        return curr_angles
+
+    def calculate_follower_angles(self, leader_angles):
+        p_leader = self.forward_kinematics(leader_angles, self.leader_L1, self.leader_L2, self.leader_offset)
+        p_follower = self.scale_position(p_leader)
+        follower_angles = self.inverse_kinematics(p_follower, leader_angles)
+        return follower_angles
